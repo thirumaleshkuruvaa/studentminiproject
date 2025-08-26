@@ -5,16 +5,21 @@ import java.util.Optional;
 
 import com.thiru.entities.Student;
 
+import jakarta.validation.Valid;
+
 public interface StudentService {
 
 	// CREATE
-	Student createStudent(Student student);
+    Student createStudent(@Valid Student student);
 
-	List<Student> createStudents(Student student);
+  //  List<Student> createStudents(@Valid Student students);
+	List<Student> createStudents(@Valid List<Student> students);
+
+    
 	// READ
 
 	// fetch one student
-	Optional<Student> getStudentById(int id);
+	Student getStudentById(int id);
 
 	// fetch all students
 	List<Student> getAllStudents();
@@ -29,6 +34,7 @@ public interface StudentService {
 	
 
 	String determineBranchAndName(String regNumber);
+
 
 	
 }

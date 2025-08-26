@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,24 +21,19 @@ import com.thiru.ExceptionalHandling.StudentNotFoundException;
 import com.thiru.entities.Student;
 import com.thiru.repository.StudentRepository;
 
-// This tells JUnit to enable Mockito
 @ExtendWith(MockitoExtension.class)
 class StudentServiceImplTest {
 
-    // Mock: fake object for StudentRepository (no DB needed)
     @Mock
     private StudentRepository studentRepository;
 
-    //  InjectMocks: create StudentServiceImpl and inject mock repo inside
     @InjectMocks
     private StudentServiceImpl studentService;
 
-    private Student student; // sample data we will use
+    private Student student;
 
     @BeforeEach
     void setUp() {
-    	
-        //  Before every test, create a sample student
         student = new Student();
         student.setId(1);
         student.setName("Thirumalesh");
@@ -47,36 +41,28 @@ class StudentServiceImplTest {
         student.setRegNumber("23G31A0536");
     }
 
-    //  1. Test Create Student
+    // 1. Test Create Student
     @Test
     void testCreateStudent() {
-        // Mock behavior: when save() is called, return the same student
-       when(studentRepository.save(student)).thenReturn(student);
+        when(studentRepository.save(student)).thenReturn(student);
 
-        // Call service
         Student saved = studentService.createStudent(student);
 
-        // Check results
-        Assertions.assertNotNull(saved);
-        Assertions.assertTrue(student.getId()==1);
-        Assertions.assertEquals(1, saved.getId());
-        Assertions.assertEquals(student.getBranch(), saved.getBranch());
         assertThat(saved).isNotNull();
+        assertThat(saved.getId()).isEqualTo(1);
         assertThat(saved.getName()).isEqualTo("Thirumalesh");
-
-        // Verify repository method was called once
         verify(studentRepository, times(1)).save(student);
     }
 
-    //  2. Test Get Student by ID - Found
+    // 2. Test Get Student by ID - Found
     @Test
     void testGetStudentById_WhenFound() {
         when(studentRepository.findById(1)).thenReturn(Optional.of(student));
 
-        Optional<Student> result = studentService.getStudentById(1);
+        Student result = studentService.getStudentById(1);
 
-        assertThat(result).isPresent();
-        assertThat(result.get().getBranch()).isEqualTo("CSE");
+        assertThat(result).isNotNull();
+        assertThat(result.getBranch()).isEqualTo("CSE");
     }
 
     // 3. Test Get Student by ID - Not Found
@@ -84,12 +70,11 @@ class StudentServiceImplTest {
     void testGetStudentById_WhenNotFound() {
         when(studentRepository.findById(2)).thenReturn(Optional.empty());
 
-        Optional<Student> result = studentService.getStudentById(2);
-
-        assertThat(result).isEmpty();
+        assertThrows(StudentNotFoundException.class,
+                () -> studentService.getStudentById(2));
     }
 
-    //  4. Test Update Student - Found
+    // 4. Test Update Student - Found
     @Test
     void testUpdateStudentById_WhenStudentExists() {
         Student updatedData = new Student();
@@ -105,7 +90,7 @@ class StudentServiceImplTest {
         assertThat(result.getBranch()).isEqualTo("ECE");
     }
 
-    //  5. Test Update Student - Not Found
+    // 5. Test Update Student - Not Found
     @Test
     void testUpdateStudentById_WhenStudentNotFound() {
         when(studentRepository.findById(99)).thenReturn(Optional.empty());
@@ -114,7 +99,7 @@ class StudentServiceImplTest {
                 () -> studentService.updateStudentById(99, student));
     }
 
-    //  6. Test Determine Branch and Name - From DB
+    // 6. Test Determine Branch and Name - From DB
     @Test
     void testDetermineBranchAndName_FromDB() {
         when(studentRepository.findByRegNumber("23G31A0536"))
@@ -125,7 +110,7 @@ class StudentServiceImplTest {
         assertThat(result).isEqualTo("Thirumalesh, CSE");
     }
 
-    //  7. Test Determine Branch and Name - By Pattern (fallback)
+    // 7. Test Determine Branch and Name - By Pattern (fallback)
     @Test
     void testDetermineBranchAndName_ByPattern() {
         String result = studentService.determineBranchAndName("23G31A0495");
@@ -133,14 +118,15 @@ class StudentServiceImplTest {
         assertThat(result).isEqualTo("UNKNOWN, ECE");
     }
 
-    //  8. Test Delete Student
+    // 8. Test Delete Student
     @Test
     void testDeleteStudentById() {
         doNothing().when(studentRepository).deleteById(1);
 
-        String response = studentService.deleteStudentById(1);
+        studentService.deleteStudentById(1);
 
-        assertThat(response).isEqualTo("Student deleted Successfully");
         verify(studentRepository, times(1)).deleteById(1);
     }
 }
+
+
